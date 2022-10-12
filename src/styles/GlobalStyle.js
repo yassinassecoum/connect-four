@@ -15,12 +15,12 @@ const GlobalStyle = createGlobalStyle`
         padding: 0;
         list-style: none;
         box-sizing: border-box;
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Space Grotesk', sans-serif;
         text-decoration: none;
 
     }
     body{
-        background-color: var(--purple-primary);
+        background-color: var(--purple-secondary);
         font-size: 1.2rem;
         color: white;
 

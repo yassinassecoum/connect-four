@@ -1,8 +1,12 @@
+import "./App.css";
+import { BrowserRouter as Router } from "react-router-dom";
+import Routing from "./routing/routes";
+
 function App() {
   return (
-    <div className="App">
-      <h1>Hello</h1>
-    </div>
+    <Router>
+      <Routing />
+    </Router>
   );
 }
 
