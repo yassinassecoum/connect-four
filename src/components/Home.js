@@ -33,7 +33,7 @@ export const Home = () => {
 };
 
 const Wrap = styled.div`
-  min-height: 100vh;
+  min-height: 94vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -50,6 +50,12 @@ const Box = styled.div`
   justify-content: space-around;
   align-items: center;
   flex-direction: column;
+  @media screen and (max-width: 670px) {
+    height: 407px;
+    width: 337px;
+    border: none;
+    box-shadow: none;
+  }
   .logo {
   }
   .wrapBtns {
@@ -71,6 +77,9 @@ const Box = styled.div`
       display: flex;
       align-items: center;
       transition: 0.3s;
+      @media screen and (max-width: 670px) {
+        width: 335px;
+      }
       &:hover {
         box-shadow: 0px 10px 0px var(--purple-primary);
         border: 3px solid var(--purple-primary);

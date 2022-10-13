@@ -41,7 +41,7 @@ export const Rules = () => {
   );
 };
 const Wrap = styled.div`
-  min-height: 100vh;
+  min-height: 94vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -60,6 +60,10 @@ const Box = styled.div`
   flex-direction: column;
   padding: 0px 25px;
   position: relative;
+  @media screen and (max-width: 670px) {
+    height: 618px;
+    width: 335px;
+  }
   h1 {
     color: var(--black);
     font-weight: 700;

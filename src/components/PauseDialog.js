@@ -14,7 +14,6 @@ export const PauseDialog = forwardRef((props, ref) => {
   }));
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-  //to refactor
 
   useEffect(() => {
     if (open) {
@@ -32,12 +31,7 @@ export const PauseDialog = forwardRef((props, ref) => {
     setOpen(false);
   };
   return (
-    <Dialog
-      className="testt"
-      fullScreen={fullScreen}
-      open={open}
-      onClose={() => setOpen(false)}
-    >
+    <Dialog fullScreen={fullScreen} open={open} onClose={() => setOpen(false)}>
       <Wrap>
         <h1>PAUSE</h1>
         <div className="wrapBtns">
@@ -66,6 +60,15 @@ const Wrap = styled.div`
   align-items: center;
   justify-content: space-around;
   flex-direction: column;
+  position: relative;
+  @media screen and (max-width: 670px) {
+    width: 335px;
+    height: 437px;
+    margin: auto;
+  }
+  @media screen and (max-width: 1200px) {
+    margin: auto;
+  }
   h1 {
     font-weight: 700;
     font-size: 56px;
@@ -84,6 +87,9 @@ const Wrap = styled.div`
       width: 400px;
       height: 72px;
       cursor: pointer;
+      @media screen and (max-width: 670px) {
+        width: 295px;
+      }
       &:hover {
         box-shadow: 0px 10px 0px var(--purple-primary);
         border: 3px solid var(--purple-primary);

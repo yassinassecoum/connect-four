@@ -4,14 +4,7 @@ import styled from "styled-components";
 import logo from "../assets/images/logo.svg";
 import { PauseDialog } from "./PauseDialog";
 
-export const Header = ({
-  initialBoard,
-  setBoard,
-  setCurrentPlayer,
-  setProgress,
-  progress,
-  restartGame,
-}) => {
+export const Header = ({ setProgress, progress, restartGame }) => {
   const menuDialogRef = useRef();
 
   return (
@@ -21,9 +14,6 @@ export const Header = ({
       <button onClick={() => restartGame()}>RESTART</button>
       <PauseDialog
         ref={menuDialogRef}
-        initialBoard={initialBoard}
-        setBoard={setBoard}
-        setCurrentPlayer={setCurrentPlayer}
         setProgress={setProgress}
         progress={progress}
         restartGame={restartGame}
@@ -38,11 +28,25 @@ const Wrap = styled.div`
   justify-content: space-between;
   width: 638px;
   margin-top: 40px;
-
   margin-bottom: 20px;
+  @media screen and (max-width: 1200px) {
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  @media screen and (max-width: 670px) {
+    width: 335px;
+    margin-top: 50px;
+    margin-bottom: 40px;
+  }
+  .img {
+    @media screen and (max-width: 670px) {
+      width: 40px;
+      height: 40px;
+    }
+  }
   button {
     background: #5c2dd5;
-    min-width: 90px;
+    min-width: 98px;
     border-radius: 20px;
     color: white;
     cursor: pointer;
@@ -51,6 +55,7 @@ const Wrap = styled.div`
     font-size: 16px;
     line-height: 20px;
     text-align: center;
+    border-color: black;
     &:hover {
       background: #fd6687;
     }
