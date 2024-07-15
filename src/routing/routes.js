@@ -10,7 +10,7 @@ const Routing = () => {
     <Routes>
       <Route path="/" element={<Home />} exact />
       <Route path="/rules" element={<Rules />} exact />
-      {/* <Route path="/playervsplayer" element={<GameBoardPvP />} exact /> */}
+      {/* <Route path="/playervscpu" element={<GameBoardPvP />} exact /> */}
       <Route path="/playervsplayer" element={<GameBoard2 />} exact />
     </Routes>
   );
