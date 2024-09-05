@@ -8,7 +8,7 @@ import layerSmall from "../assets/images/layer-small.svg";
 import bg from "../assets/images/bg.svg";
 import bgSmall from "../assets/images/bg-small.svg";
 import player1 from "../assets/images/player-one.svg";
-import player2 from "../assets/images/player-two.svg";
+import cpu from "../assets/images/cpu.svg";
 import turnPlayer1 from "../assets/images/turn-p1.svg";
 import turnPlayer2 from "../assets/images/turn-p2.svg";
 import turnPlayer1Bg from "../assets/images/turn-background-red.svg";
@@ -17,15 +17,15 @@ import winnerCard from "../assets/images/winnerCard.svg";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
-const GameBoard2 = () => {
+const GameBoardVsCPU = () => {
   const theme = useTheme();
   const lowerThanLarge = useMediaQuery(theme.breakpoints.down("lg"));
   const lowerThanSmall = useMediaQuery(theme.breakpoints.down(670));
   const c4Rows = 6;
   const c4Columns = 7;
   const initialBoard = {
-    rows: Array.from({ length: c4Rows }, (_, i) => ({
-      columns: Array.from({ length: c4Columns }, (_, i) => ({
+    rows: Array.from({ length: c4Rows }, () => ({
+      columns: Array.from({ length: c4Columns }, () => ({
         player: null,
       })),
     })),
@@ -35,7 +35,7 @@ const GameBoard2 = () => {
   const [colIndex, setColIndex] = useState(3);
   const [progress, setProgress] = useState(15);
   const [player1Score, setPlayer1Score] = useState(0);
-  const [player2Score, setPlayer2Score] = useState(0);
+  const [cpuScore, setCpuScore] = useState(0);
   const [showWinner, setShowWinner] = useState(false);
   const [showDraw, setShowDraw] = useState(false);
 
@@ -50,166 +50,222 @@ const GameBoard2 = () => {
     };
   }, []);
 
-  //check when timer is out change player
   useEffect(() => {
     if (!showDraw && !showWinner) {
       if (progress === 0) {
         setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
       }
     }
-  }, [progress]);
+  }, [progress, showDraw, showWinner, currentPlayer]);
 
-  //check when player changed reset timer
   useEffect(() => {
     setProgress(15);
+    if (currentPlayer === 2 && !showWinner && !showDraw) {
+      setTimeout(() => {
+        makeCPUMove();
+      }, 1000);
+    }
   }, [currentPlayer]);
 
   const restartGame = () => {
-    setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+    setCurrentPlayer(1);
     setBoard(initialBoard);
     setShowWinner(false);
     setShowDraw(false);
   };
+
   const updateBoard = (columnIndex) => {
-    let boardCopy = board;
-    let areColumnsFilled = true;
-    let rowIndex = 0;
-    for (let i = 5; i >= 0; i--) {
-      let columnPlayer = boardCopy.rows[i].columns[columnIndex].player;
-      if (!columnPlayer) {
-        boardCopy.rows[i].columns[columnIndex].player = currentPlayer;
-        areColumnsFilled = false;
-        rowIndex = i;
-        break;
-      }
-    }
-    setBoard(boardCopy);
-    if (!areColumnsFilled) {
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-    }
-    if (winCheck(rowIndex, columnIndex)) {
-      setShowWinner(true);
-      if (currentPlayer === 1) {
+    if (currentPlayer !== 1 || showWinner || showDraw) return;
+
+    let boardCopy = { ...board };
+    let rowIndex = getLowestEmptyRow(boardCopy, columnIndex);
+
+    if (rowIndex !== -1) {
+      boardCopy.rows[rowIndex].columns[columnIndex].player = 1;
+      setBoard(boardCopy);
+
+      if (winCheck(rowIndex, columnIndex)) {
+        setShowWinner(true);
         setPlayer1Score(player1Score + 1);
+      } else if (drawCheck()) {
+        setShowDraw(true);
       } else {
-        setPlayer2Score(player2Score + 1);
+        setCurrentPlayer(2);
       }
-    } else if (drawCheck()) {
-      setShowDraw(true);
     }
   };
-  const drawCheck = () => {
-    let isBoardFilled =
-      board.rows.filter(
-        (row) =>
-          row.columns.filter((column) => column.player === null).length > 0
-      ).length > 0
-        ? false
-        : true;
-    return isBoardFilled;
+
+  const makeCPUMove = () => {
+    const bestMove = findBestMove(board);
+    let boardCopy = { ...board };
+    let rowIndex = getLowestEmptyRow(boardCopy, bestMove);
+
+    if (rowIndex !== -1) {
+      boardCopy.rows[rowIndex].columns[bestMove].player = 2;
+      setBoard(boardCopy);
+      setColIndex(bestMove);
+
+      if (winCheck(rowIndex, bestMove)) {
+        setShowWinner(true);
+        setCpuScore(cpuScore + 1);
+      } else if (drawCheck()) {
+        setShowDraw(true);
+      } else {
+        setCurrentPlayer(1);
+      }
+    }
   };
-  const winCheck = (rowIndex, columnIndex) => {
-    return (
-      checkHorizontal(rowIndex, columnIndex) ||
-      checkVertical(rowIndex, columnIndex) ||
-      checkDiagonalRight(rowIndex, columnIndex) ||
-      checkDiagonalLeft(rowIndex, columnIndex)
+
+  const getLowestEmptyRow = (board, columnIndex) => {
+    for (let i = c4Rows - 1; i >= 0; i--) {
+      if (!board.rows[i].columns[columnIndex].player) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
+  const findBestMove = (board) => {
+    // Check for winning move
+    for (let col = 0; col < c4Columns; col++) {
+      let row = getLowestEmptyRow(board, col);
+      if (row !== -1) {
+        let boardCopy = JSON.parse(JSON.stringify(board));
+        boardCopy.rows[row].columns[col].player = 2;
+        if (winCheck(row, col, boardCopy)) {
+          return col;
+        }
+      }
+    }
+
+    // Block player's winning move
+    for (let col = 0; col < c4Columns; col++) {
+      let row = getLowestEmptyRow(board, col);
+      if (row !== -1) {
+        let boardCopy = JSON.parse(JSON.stringify(board));
+        boardCopy.rows[row].columns[col].player = 1;
+        if (winCheck(row, col, boardCopy)) {
+          return col;
+        }
+      }
+    }
+
+    // Choose center column if available
+    let centerCol = 3;
+    if (getLowestEmptyRow(board, centerCol) !== -1) {
+      return centerCol;
+    }
+
+    // Choose random column
+    let availableColumns = [];
+    for (let col = 0; col < c4Columns; col++) {
+      if (getLowestEmptyRow(board, col) !== -1) {
+        availableColumns.push(col);
+      }
+    }
+    return availableColumns[
+      Math.floor(Math.random() * availableColumns.length)
+    ];
+  };
+
+  const drawCheck = () => {
+    return board.rows.every((row) =>
+      row.columns.every((column) => column.player !== null)
     );
   };
-  const checkDiagonalRight = (rowIndex, columnIndex) => {
-    let consecutiveColumns = 0;
-    let indexDifference = rowIndex - columnIndex;
-    let columnToStartFrom = 0;
-    let rowToStartFrom = 0;
-    if (indexDifference > 0) {
-      rowToStartFrom = indexDifference;
-    } else if (indexDifference < 0) {
-      columnToStartFrom = Math.abs(indexDifference);
-    }
-    for (let i = 0; i < c4Rows; i++) {
-      let column =
-        board.rows[rowToStartFrom + i]?.columns[columnToStartFrom + i];
-      if (column) {
-        if (
-          column.player === board.rows[rowIndex].columns[columnIndex].player
-        ) {
-          consecutiveColumns++;
-          if (consecutiveColumns >= 4) {
-            return true;
-          }
-        } else {
-          consecutiveColumns = 0;
-        }
-      }
-    }
-    return false;
-  };
-  const checkDiagonalLeft = (rowIndex, columnIndex) => {
-    let consescutiveColumns = 0;
-    let columnToStartFrom = rowIndex;
-    let rowToStartFrom = columnIndex;
-    for (let i = 0; i < c4Rows; i++) {
-      let column = board.rows[rowIndex - i]?.columns[columnIndex + i];
-      if (column) {
-        columnToStartFrom = columnIndex + i;
-        rowToStartFrom = rowIndex + i;
-      } else {
-        break;
-      }
-    }
-    for (let j = 0; j > c4Rows; j++) {
-      let column =
-        board.rows[rowToStartFrom + j]?.columns[columnToStartFrom - j];
-      if (column) {
-        if (
-          column.player === board.rows[rowIndex].columns[columnIndex].player
-        ) {
-          consescutiveColumns++;
-          if (consescutiveColumns >= 4) {
-            return true;
-          }
-        } else {
-          consescutiveColumns = 0;
-        }
-      }
-    }
-    return false;
-  };
-  const checkVertical = (rowIndex, columnIndex) => {
-    let row = board.rows[rowIndex];
-    let consecutiveColumns = 0;
 
-    for (let i = 0; i < c4Rows; i++) {
-      if (
-        board.rows[i].columns[columnIndex].player ===
-        row.columns[columnIndex].player
-      ) {
-        consecutiveColumns++;
-        if (consecutiveColumns >= 4) {
-          return true;
-        }
-      } else {
-        consecutiveColumns = 0;
-      }
-    }
-    return false;
+  const winCheck = (rowIndex, columnIndex, checkBoard = board) => {
+    return (
+      checkHorizontal(rowIndex, columnIndex, checkBoard) ||
+      checkVertical(rowIndex, columnIndex, checkBoard) ||
+      checkDiagonalRight(rowIndex, columnIndex, checkBoard) ||
+      checkDiagonalLeft(rowIndex, columnIndex, checkBoard)
+    );
   };
 
-  const checkHorizontal = (rowIndex, columnIndex) => {
-    let row = board.rows[rowIndex];
-    let consecutiveColumns = 0;
+  const checkHorizontal = (rowIndex, columnIndex, checkBoard) => {
+    let row = checkBoard.rows[rowIndex];
+    let count = 0;
+    let player = row.columns[columnIndex].player;
+
     for (let i = 0; i < c4Columns; i++) {
-      if (row.columns[i].player === row.columns[columnIndex].player) {
-        consecutiveColumns++;
-        if (consecutiveColumns >= 4) {
-          return true;
-        }
+      if (row.columns[i].player === player) {
+        count++;
+        if (count === 4) return true;
       } else {
-        consecutiveColumns = 0;
+        count = 0;
       }
     }
     return false;
   };
+
+  const checkVertical = (rowIndex, columnIndex, checkBoard) => {
+    let count = 0;
+    let player = checkBoard.rows[rowIndex].columns[columnIndex].player;
+
+    for (let i = 0; i < c4Rows; i++) {
+      if (checkBoard.rows[i].columns[columnIndex].player === player) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+    }
+    return false;
+  };
+
+  const checkDiagonalRight = (rowIndex, columnIndex, checkBoard) => {
+    let count = 0;
+    let player = checkBoard.rows[rowIndex].columns[columnIndex].player;
+    let r = rowIndex - Math.min(rowIndex, columnIndex);
+    let c = columnIndex - Math.min(rowIndex, columnIndex);
+
+    while (r < c4Rows && c < c4Columns) {
+      if (checkBoard.rows[r].columns[c].player === player) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+      r++;
+      c++;
+    }
+    return false;
+  };
+
+  const checkDiagonalLeft = (rowIndex, columnIndex, checkBoard) => {
+    let count = 0;
+    let player = checkBoard.rows[rowIndex].columns[columnIndex].player;
+    let r = rowIndex - Math.min(rowIndex, c4Columns - 1 - columnIndex);
+    let c = columnIndex + Math.min(rowIndex, c4Columns - 1 - columnIndex);
+
+    while (r < c4Rows && c >= 0) {
+      if (checkBoard.rows[r].columns[c].player === player) {
+        count++;
+        if (count === 4) return true;
+      } else {
+        count = 0;
+      }
+      r++;
+      c--;
+    }
+    return false;
+  };
+
+  <div className="box p2">
+    <img src={cpu} alt="CPU logo" />
+    {lowerThanSmall ? (
+      <>
+        <span className="player">CPU</span>
+        <span className="score"> {cpuScore} </span>
+      </>
+    ) : (
+      <>
+        <span className="score"> {cpuScore} </span>
+        <span className="player">CPU</span>
+      </>
+    )}
+  </div>;
 
   return (
     <Wrap>
@@ -226,16 +282,16 @@ const GameBoard2 = () => {
             <span className="score"> {player1Score} </span>
           </div>
           <div className="box p2">
-            <img src={player2} alt="player 2 logo" />
+            <img src={cpu} alt="CPU logo" />
             {lowerThanSmall ? (
               <>
-                <span className="player">Player 2</span>
-                <span className="score"> {player2Score} </span>
+                <span className="player">CPU</span>
+                <span className="score"> {cpuScore} </span>
               </>
             ) : (
               <>
-                <span className="score"> {player2Score} </span>
-                <span className="player">Player 2</span>
+                <span className="score"> {cpuScore} </span>
+                <span className="player">CPU</span>
               </>
             )}
           </div>
@@ -264,7 +320,7 @@ const GameBoard2 = () => {
           <img
             className={`turn col${colIndex}`}
             src={turnPlayer2}
-            alt="turn player"
+            alt="turn CPU"
           />
         )}
         <table>
@@ -281,11 +337,12 @@ const GameBoard2 = () => {
             ))}
           </tbody>
         </table>
+
         {!lowerThanLarge ? (
           <div className="box p2">
-            <img src={player2} alt="player 2 logo" />
-            <span className="player">Player 2</span>
-            <span className="score"> {player2Score} </span>
+            <img src={cpu} alt="CPU logo" />
+            <span className="player">CPU</span>
+            <span className="score"> {cpuScore} </span>
           </div>
         ) : (
           ""
@@ -298,7 +355,7 @@ const GameBoard2 = () => {
             </div>
             <div className="winnerCardContent">
               <span className="player">
-                PLAYER {currentPlayer === 1 ? 2 : 1}
+                {currentPlayer === 2 ? "CPU" : "PLAYER 1"}
               </span>
               <span className="status">WINS</span>
               <button className="roseBtn" onClick={() => restartGame()}>
@@ -328,11 +385,13 @@ const GameBoard2 = () => {
           {currentPlayer === 1 ? (
             <img src={turnPlayer1Bg} alt="turn player 1" />
           ) : (
-            <img src={turnPlayer2Bg} alt="turn player 2" />
+            <img src={turnPlayer2Bg} alt="turn CPU" />
           )}
         </div>
         <div className="turnCardContent">
-          <span className="turnPlayer">PLAYER {currentPlayer}'S TURN </span>
+          <span className="turnPlayer">
+            {currentPlayer === 1 ? "PLAYER 1" : "CPU"}'S TURN
+          </span>
           <span className="turnPlayerTimer">{progress}s</span>
         </div>
       </div>
@@ -344,6 +403,7 @@ const GameBoard2 = () => {
     </Wrap>
   );
 };
+
 const Wrap = styled.div`
   min-height: 94vh;
   display: flex;
@@ -445,7 +505,6 @@ const Wrap = styled.div`
     .col6 {
       right: 214px;
     }
-
     table {
       background-image: url(${layer});
       background-repeat: no-repeat;
@@ -605,4 +664,4 @@ const Wrap = styled.div`
     }
   }
 `;
-export default GameBoard2;
+export default GameBoardVsCPU;

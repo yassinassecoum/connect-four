@@ -14,14 +14,22 @@ export const Home = () => {
       <Box>
         <img src={logo} className="logo" alt="Okidocc Logo" />
         <div className="wrapBtns">
-          <button disabled className="roseBtn">
-            PLAY VS CPU (dev) <img src={playerCpu} alt="logo CPU" />
-          </button>
           <button
             className="yellowBtn"
             onClick={() => navigate("/playervsplayer")}
           >
             PLAY VS PLAYER <img src={playerPlayer} alt="logo PVP" />
+          </button>
+          <button onClick={() => navigate("/playervscpu")} className="roseBtn">
+            PLAY VS CPU
+            <img src={playerCpu} alt="logo CPU" />
+          </button>
+          <button
+            disabled
+            className="blackBtn"
+            onClick={() => navigate("/playervsonline")}
+          >
+            PLAY ONLINE (todo) <img src={playerPlayer} alt="logo PVP" />
           </button>
           <button className="whiteBtn" onClick={() => navigate("/rules")}>
             GAMES RULES
@@ -34,14 +42,17 @@ export const Home = () => {
 
 const Wrap = styled.div`
   min-height: 94vh;
+  max-width: 586px;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-left: auto;
+  margin-right: auto;
 `;
 
 const Box = styled.div`
-  height: 537px;
-  width: 480px;
+  width: 100%;
+  height: 100%;
   background-color: var(--purple-secondary);
   border: 3px solid #000000;
   box-shadow: 0px 10px 0px #000000;
@@ -50,23 +61,21 @@ const Box = styled.div`
   justify-content: space-around;
   align-items: center;
   flex-direction: column;
-  @media screen and (max-width: 670px) {
-    height: 407px;
-    width: 337px;
-    border: none;
-    box-shadow: none;
-  }
   .logo {
+    margin-top: 45px;
+    margin-bottom: 40px;
   }
   .wrapBtns {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    height: 290px;
+    align-items: center;
     button {
+      margin-top: 10px;
+      margin-bottom: 20px;
       width: 400px;
       height: 72px;
-      box-shadow: 0px 10px 0px #000000;
+      box-shadow: 3px 10px 3px #000000;
       border-radius: 20px;
       font-size: 24px;
       line-height: 31px;
@@ -99,9 +108,17 @@ const Box = styled.div`
       color: black;
     }
     .whiteBtn {
+      margin-top: 45px;
+      margin-bottom: 40px;
+      width: 220px;
       background: var(--white);
       border: 3px solid #000000;
       color: black;
+    }
+    .blackBtn {
+      background: black; /* Green color */
+      border: 3px solid #000000;
+      color: white;
     }
   }
 `;
