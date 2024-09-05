@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import check from "../assets/images/icon-check.svg";
 import checkHover from "../assets/images/icon-check-hover.svg";
-import { motion } from "framer-motion";
 
 export const Rules = () => {
   const navigate = useNavigate();
